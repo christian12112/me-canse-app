@@ -30,6 +30,11 @@ jobs:
           libmpfr-dev libmpc-dev swig libffi-dev openjdk-17-jdk zip apktool \
           libsqlite3-dev
 
+    - name: Set Java 17 as Default
+      run: |
+        sudo update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64 || true
+        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+
     - name: Install Python Tools
       run: |
         pip install --upgrade pip
@@ -38,16 +43,13 @@ jobs:
 
     - name: Pre-accept Android SDK Licenses
       run: |
-        # Forzamos la creación del entorno básico para que buildozer descargue el SDK manager
         buildozer android status || true
-        # Buscamos el sdkmanager instalado y aceptamos absolutamente todas las licencias de Google
         if [ -d "$HOME/.buildozer/android/platform/android-sdk" ]; then
           yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
         fi
 
     - name: Build with Buildozer
       run: |
-        # Agregamos un comando 'yes' directo al buildozer por si acaso
         yes | buildozer -v android debug
 
     - name: Upload APK Artifact
