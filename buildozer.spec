@@ -22,7 +22,7 @@ source.main = main.py
 version = 1.0
 
 # (list) Requisitos de la aplicación
-requirements = python3,kivy,pyjnius,android,plyer,requests,speechrecognition,gtts,pygame
+requirements = python3,kivy,pyjnius,android,plyer,requests,speechrecognition,gtts
 
 # (str) Orientación permitida
 orientation = portrait
@@ -34,7 +34,7 @@ fullscreen = 0
 android.minapi = 21
 
 # (str) Versión de Android target
-android.api = 30
+android.api = 33
 
 # (str) NDK version
 android.ndk = 25b
