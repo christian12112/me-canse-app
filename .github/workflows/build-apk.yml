@@ -1,32 +1,50 @@
-```yaml
 name: Build APK
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.8
-    - name: Install dependencies
+        python-version: '3.10'
+
+    - name: Install System Dependencies
       run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-8-jdk python3-pip
-        sudo apt install -y autoconf libtool pkg-config zlib1g-dev
-        sudo apt install -y libncurses5-dev libncursesw5-dev libtinfo5
-        sudo apt install -y cmake libffi-dev libssl-dev
-    - name: Install Python dependencies
+        sudo apt-get update
+        sudo apt-get install -y build-essential ccache git zlib1g-dev \
+          unzip automake autoconf libtool pkg-config libssl-dev texinfo libgmp-dev \
+          libmpfr-dev libmpc-dev swig libffi-dev openjdk-17-jdk zip apktool \
+          libsqlite3-dev
+
+    - name: Install Python Tools
       run: |
-        pip install buildozer cython
-        pip install kivy[base]
-    - name: Build APK
+        pip install --upgrade pip
+        pip install "cython<3.0.0"
+        pip install buildozer kivy
+
+    - name: Accept Android SDK Licenses
       run: |
-        buildozer android debug
-    - name: Upload APK
-      uses: actions/upload-artifact@v2
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | buildozer android pdm || true
+
+    - name: Build with Buildozer
+      run: |
+        buildozer -v android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: christianx-apk
-        path: bin/*.apk
-```
+        name: christianx-apk-debug
+        path: bin/*.apk  
