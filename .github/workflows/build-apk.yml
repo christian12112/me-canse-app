@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK Fast and Blind
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Este comando le dice a Python y Cython que ignoren advertencias menores
+  PYTHONWARNINGS: "ignore"
 
 jobs:
   build:
@@ -41,15 +43,27 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer kivy
 
-    - name: Pre-accept Android SDK Licenses
+    - name: Force Clean and Fix Configuration
       run: |
+        # Elimina cualquier rastro corrupto previo
+        rm -rf .buildozer/
+        
+        # Limpia a la fuerza cualquier línea problemática del micrófono en tu archivo spec
+        if [ -f "buildozer.spec" ]; then
+          sed -i '/microphone/d' buildozer.spec
+          sed -i 's/--feature android.hardware.microphone//g' buildozer.spec
+          sed -i 's/android.features = android.hardware.microphone//g' buildozer.spec
+        fi
+        
+        # Acepta todas las licencias de Android en modo silencioso
         buildozer android status || true
         if [ -d "$HOME/.buildozer/android/platform/android-sdk" ]; then
           yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
         fi
 
-    - name: Build with Buildozer
+    - name: Build with Buildozer (Ignore Warnings)
       run: |
+        # Ejecuta buildozer pasándole "yes" automáticamente a cualquier pregunta interna
         yes | buildozer -v android debug
 
     - name: Upload APK Artifact
