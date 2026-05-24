@@ -36,15 +36,19 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer kivy
 
-    - name: Accept Android SDK Licenses
+    - name: Pre-accept Android SDK Licenses
       run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        yes | buildozer android pdm || true
+        # Forzamos la creación del entorno básico para que buildozer descargue el SDK manager
+        buildozer android status || true
+        # Buscamos el sdkmanager instalado y aceptamos absolutamente todas las licencias de Google
+        if [ -d "$HOME/.buildozer/android/platform/android-sdk" ]; then
+          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        fi
 
     - name: Build with Buildozer
       run: |
-        buildozer -v android debug
+        # Agregamos un comando 'yes' directo al buildozer por si acaso
+        yes | buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
